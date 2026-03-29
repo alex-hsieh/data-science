@@ -6,9 +6,13 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
 from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 '''
-# NOTE: you may need to run these downloads once to get the necessary NLTK data files
+# fyi: you may need to run these downloads once to get the necessary NLTK data files
 nltk.download('punkt')
 nltk.download('punkt_tab')
 nltk.download('stopwords')
@@ -136,3 +140,19 @@ for i in range(len(cleaned_documents)):
     top5_rows.append(row)
  
 pd.DataFrame(top5_rows).to_csv('top5Words.csv', index=False, header=False)
+
+# PART 5: TF-IDF VECTORIZATION AND COSINE SIMILARITY
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(cleaned_documents)
+similarity_matrix = cosine_similarity(tfidf_matrix)
+
+# TEST: print the shape of the similarity matrix
+print(f"Similarity matrix shape: {similarity_matrix.shape}")
+
+# PART 6: VISUALIZATION
+labels = ['Chicken'] + [url.split('/')[-1].replace('_', ' ') for url in valid_urls]
+
+plt.figure(figsize=(14, 12))
+sns.heatmap(similarity_matrix, xticklabels=labels, yticklabels=labels, annot=False, cmap='YlOrRd')
+plt.tight_layout()
+plt.savefig('similarity_heatmap.png')
