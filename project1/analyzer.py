@@ -4,6 +4,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+import pandas as pd
 
 '''
 # NOTE: you may need to run these downloads once to get the necessary NLTK data files
@@ -71,7 +72,7 @@ for url in valid_urls:
     content = fetch_main_content(url)
     document.append(content.get_text())
 
-# print the valid URLs and the number of valid URLs found
+# TEST: print the valid URLs and the number of valid URLs found
 print(f"Found {len(valid_urls)} valid links")
 print("First 10 links:", valid_urls[:10])
 
@@ -98,5 +99,25 @@ for text in document:
     cleaned = [lemmatizer.lemmatize(t) for t in tokens if t.isalpha() and t not in stop_words]
     cleaned_documents.append(' '.join(cleaned))
 
-# test
+# TEST: preview the first 200 characters of the cleaned version of document 0
 print(cleaned_documents[0][:200])
+
+
+# PART 3: 
+rows = []
+for i in range(len(document)):
+    rows.append(
+        {
+            'doc_id': i,
+            'url': seed_url if i == 0 else valid_urls[i-1],
+            'raw_text': document[i],
+            'cleaned_text': cleaned_documents[i]
+        }
+    )
+
+df = pd.DataFrame(rows)
+df.to_csv('data.csv', index=False)
+
+# TEST: print the first 5 rows of the DataFrame
+print(df.head())
+print(df.head(5))
