@@ -5,18 +5,20 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+'''
+# NOTE: you may need to run these downloads once to get the necessary NLTK data files
 nltk.download('punkt')
 nltk.download('punkt_tab')
 nltk.download('stopwords')
 nltk.download('wordnet')
-
+'''
 # create a dictionary of headers to include in the request
 headers = {
     # introduce myself to get access
     'User-Agent': 'FSU_Data_Science_Student_Project/1.0 (ach22h@fsu.edu)'
 }
 
-
+# PART 1: WEB SCRAPING - meep!!!
 # fetch a wikipedia page and return the cleaned main content div
 def fetch_main_content(url):
     response = requests.get(url, headers=headers)
@@ -83,3 +85,18 @@ print(document[0][:200])
 # TEST: preview the first 200 characters of document 1 (first linked page)
 print("\nDocument 1 preview:")
 print(document[1][:200])
+
+
+# PART 2: TEXT PREPROCESSING
+stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+cleaned_documents = []
+
+for text in document:
+    tokens = word_tokenize(text.lower())
+    # keep only alpha tokens not in stop_words, then lemmatize each
+    cleaned = [lemmatizer.lemmatize(t) for t in tokens if t.isalpha() and t not in stop_words]
+    cleaned_documents.append(' '.join(cleaned))
+
+# test
+print(cleaned_documents[0][:200])
