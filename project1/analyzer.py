@@ -5,6 +5,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
+from collections import Counter
 
 '''
 # NOTE: you may need to run these downloads once to get the necessary NLTK data files
@@ -103,7 +104,7 @@ for text in document:
 print(cleaned_documents[0][:200])
 
 
-# PART 3: 
+# PART 3: DATAFRAME CREATION
 rows = []
 for i in range(len(document)):
     rows.append(
@@ -121,3 +122,17 @@ df.to_csv('data.csv', index=False)
 # TEST: print the first 5 rows of the DataFrame
 print(df.head())
 print(df.head(5))
+
+# PART 4: WORD FREQUENCY ANALYSIS
+top5_rows = []
+for i in range(len(cleaned_documents)):
+    tokens = cleaned_documents[i].split()
+    top5 = Counter(tokens).most_common(5)
+    # build a row starting with doc_id, then flatten the (word, freq) pairs
+    row = [i]
+    for word, freq in top5:
+        row.append(word)
+        row.append(freq)
+    top5_rows.append(row)
+ 
+pd.DataFrame(top5_rows).to_csv('top5Words.csv', index=False, header=False)
