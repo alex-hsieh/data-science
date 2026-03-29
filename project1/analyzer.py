@@ -1,8 +1,14 @@
 import requests
 from bs4 import BeautifulSoup
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 
-# define the URL of the webpage to analyze
-url = "https://en.wikipedia.org/wiki/Chicken"
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+nltk.download('wordnet')
 
 # create a dictionary of headers to include in the request
 headers = {
@@ -10,63 +16,14 @@ headers = {
     'User-Agent': 'FSU_Data_Science_Student_Project/1.0 (ach22h@fsu.edu)'
 }
 
-# Set up an empty list to hold our final URLs
-valid_urls = []
 
-# make a GET request to the URL and store the response
-response = requests.get(url, headers=headers)
-
-# extract the content of the response and parse it with BeautifulSoup
-soup = BeautifulSoup(response.content, 'html.parser')
-
-# first find the content text container
-content_text = soup.find('div', id='mw-content-text')
-
-# then find mw-parser-output INSIDE that
-main_content = content_text.find('div', class_='mw-parser-output')
-
-# remove the infobox so its links don't get included
-infobox = main_content.find('table', class_='infobox')
-if infobox:
-    infobox.decompose()
-
-# remove the hatnote so its links don't get included
-hatnote = main_content.find_all('div', class_='hatnote')
-if hatnote:
-    for note in hatnote:
-        note.decompose()
-
-# Get a list of all paragraph tags
-paragraphs = main_content.find_all('p')
-
-
-# get the 20 valid links that start with /wiki/ and don't contain a colon
-for p in paragraphs:
-    links = p.find_all('a')
-    for link in links:
-        href = link.get('href')  
-        
-        # Check if the href is valid and meets the criteria
-        if href and href.startswith('/wiki/') and ':' not in href and len(valid_urls) < 20:
-            full_url = 'https://en.wikipedia.org' + href
-
-        # Check if the full URL is not already in the list to avoid duplicates
-        if full_url not in valid_urls:
-            valid_urls.append(full_url)
-
-document = []
-
-document.append(main_content.get_text())
-
-for url in valid_urls:
+# fetch a wikipedia page and return the cleaned main content div
+def fetch_main_content(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, 'html.parser')
-    content_text = soup.find('div', id='mw-content-text')
-    main_content = content_text.find('div', class_='mw-parser-output')
-    # first find the content text container
-    content_text = soup.find('div', id='mw-content-text')
 
-    # then find mw-parser-output INSIDE that
+    # first find the content text container, then mw-parser-output inside that
+    content_text = soup.find('div', id='mw-content-text')
     main_content = content_text.find('div', class_='mw-parser-output')
 
     # remove the infobox so its links don't get included
@@ -74,23 +31,47 @@ for url in valid_urls:
     if infobox:
         infobox.decompose()
 
-    # remove the hatnote so its links don't get included
-    hatnote = main_content.find_all('div', class_='hatnote')
-    if hatnote:
-        for note in hatnote:
-            note.decompose()
+    # remove the hatnotes so their links don't get included
+    for note in main_content.find_all('div', class_='hatnote'):
+        note.decompose()
 
-    # Get a list of all paragraph tags
-    paragraphs = main_content.find_all('p')
-    text = main_content.get_text()
-    document.append(text)
+    return main_content
+
+
+# get up to `limit` valid links that start with /wiki/ and don't contain a colon
+def extract_wiki_links(main_content, limit=20):
+    links = []
+    for p in main_content.find_all('p'):
+        for a in p.find_all('a'):
+            href = a.get('href')
+            # check if the href is valid and meets the criteria
+            if href and href.startswith('/wiki/') and ':' not in href:
+                full_url = 'https://en.wikipedia.org' + href
+                # check if the full URL is not already in the list to avoid duplicates
+                if full_url not in links:
+                    links.append(full_url)
+            if len(links) >= limit:
+                return links
+    return links
+
+
+# define the URL of the webpage to analyze
+seed_url = "https://en.wikipedia.org/wiki/Chicken"
+
+# fetch and parse the seed page, then collect its valid links
+seed_content = fetch_main_content(seed_url)
+valid_urls = extract_wiki_links(seed_content)
+
+# set up a list to hold the text of all documents
+document = [seed_content.get_text()]
+
+for url in valid_urls:
+    content = fetch_main_content(url)
+    document.append(content.get_text())
 
 # print the valid URLs and the number of valid URLs found
 print(f"Found {len(valid_urls)} valid links")
-print("First 10 links:", list(valid_urls)[:10])
-print("main_content found:", main_content is not None)
-
-print("paragraphs found:", len(paragraphs))
+print("First 10 links:", valid_urls[:10])
 
 # TEST: how many documents did we collect?
 print(f"Total documents: {len(document)}")
