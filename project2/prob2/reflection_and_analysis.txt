@@ -1,0 +1,36 @@
+alexander hsieh
+04/07/2026
+idc 4140 - 0001
+dr. sharanya jayaraman
+
+interpretation and reflection :thoughtful: 
+1. Why was it necessary to scale the features before performing hierarchical clustering?
+    > Hierarchical clustering relies on Euclidean distance to measure the 
+    similarity between data points. In our dataset, occurrence_no was a count 
+    that could reach into the hundreds, while our age features (max_ma, min_ma)
+     were much smaller numbers. Scaling the data using StandardScaler ensured 
+     that features with larger numeric ranges did not unfairly dominate the 
+     distance calculations, allowing the algorithm to weight the temporal range
+      and occurrence counts equally.
+
+2. What linkage method was used to build the dendrogram, and how does it work?
+    > The project required using Complete Linkage. This method defines the 
+    distance between two clusters as the maximum distance between their most 
+    dissimilar members. This approach tends to produce highly compact, tightly
+     bound clusters, which was useful for grouping dinosaur genera with very 
+     similar temporal profiles and abundance.
+
+3. How were the features for each genus engineered from the raw dataset?
+    > The raw occurrence data was filtered for the 'genus' rank and then 
+    aggregated. We used Pandas to find the oldest fossil age (max_ma) and
+     youngest fossil age (min_ma) for each genus to determine its first and 
+     last appearance. We also counted the total occurrences and derived a new
+      temporal_range feature by subtracting the youngest age from the oldest,
+       giving us a complete profile of that genus's evolutionary lifespan.
+
+4. What does the resulting dendrogram reveal about the dinosaur genera?
+    > The heavy clustering at the bottom of the un-truncated dendrogram (the 
+    "barcode" effect) visually demonstrates the massive diversity of the 
+    Dinosauria clade during the Mesozoic era. Because many branches merge at 
+    very low distance thresholds, it indicates that numerous distinct genera 
+    shared highly overlapping survival timelines and fossil abundance levels.

@@ -8,7 +8,8 @@ url = "https://paleobiodb.org/data1.2/occs/list.csv?base_name=Dinosauria&min_ma=
 
 # Fetch the data from the URL
 df = pd.read_csv(url)
-print(df.columns.tolist())
+# used for troubleshooting
+# print(df.columns.tolist())
 
 
 # Confirm it worked
@@ -47,7 +48,7 @@ Z = linkage(scaled_df, method='complete')
 
 # Plot the dendrogram
 plt.figure(figsize=(15, 8))
-dendrogram(Z, labels=scaled_df.index.tolist(), leaf_rotation=90, leaf_font_size=8)
+dendrogram(Z, truncate_mode='lastp', p=40, leaf_rotation=90, leaf_font_size=8)
 plt.title('Dinosaur Genus Hierarchical Clustering Dendrogram (Complete Linkage)')
 plt.xlabel('Genus')
 plt.ylabel('Distance')
