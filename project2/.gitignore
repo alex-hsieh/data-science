@@ -1,5 +1,4 @@
 # ignore data files
 *.csv
-*.png
 *.pdf
 *.tar

@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -62,11 +63,6 @@ for k in k_list:
     accuracies.append(score)
     print(f"k={k}, Accuracy={score}")
 
-knn.fit(X_train_scaled, y_train)
-knn.predict(X_test_scaled)
-accuracy_score(y_test, knn.predict(X_test_scaled))
-knn.score(X_test_scaled, y_test)
-
 # Use the best k from your output
 best_k = 20
 knn_final = KNeighborsClassifier(n_neighbors=best_k)
@@ -83,7 +79,7 @@ plt.plot(k_list, accuracies, marker='o', linestyle='dashed')
 plt.title('KNN Accuracy vs. k Value')
 plt.xlabel('k')
 plt.ylabel('Accuracy')
-plt.savefig('accuracy_vs_k.png')
+plt.show()
 
 # Plot 2: Confusion Matrix Heatmap
 plt.figure(figsize=(8,6))
@@ -92,4 +88,4 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
 plt.title(f'Confusion Matrix for k={best_k}')
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
-plt.savefig('confusion_matrix.png')
+plt.show()

@@ -1,0 +1,18 @@
+alexander hsieh
+04/07/2026
+idc 4140 - 0001
+dr. sharanya jayaraman
+
+interpretation and reflection :thoughtful: 
+
+Q: Why was it necessary to perform feature scaling (StandardScaler) on this specific dataset before training the KNN model?
+A: KNN is a distance-based algorithm (Euclidean distance). Features like capital-gain (ranges from 0 to 99,999) have a much larger magnitude than age (17 to 90) or education-num (1 to 16). Without scaling, the features with the largest numerical ranges would dominate the distance calculation, making the other features mathematically irrelevant. StandardScaler ensures all features contribute equally to the distance metric.
+
+Q: Looking at the "Accuracy vs. k" plot, how did you determine the optimal k value?
+A: Based on the plot, accuracy increased sharply from k=1 to k=5 and reached a point of diminishing returns around k=9. While the accuracy continued to climb slightly up to k=20 (83.4%), the "elbow" suggests that the model stabilizes at higher k values. I chose k=20 as the final model because it provided the highest overall accuracy on the test set.
+
+Q: The Confusion Matrix shows high accuracy for Class 0 (≤ 50K) but lower performance for Class 1 (> 50K). Why is this?
+A: This is due to class imbalance. In the UCI Census dataset, roughly 75% of the rows belong to the ≤ 50K category. Because there are fewer examples of high-earners to learn from, the model has a harder time achieving high recall for Class 1 (as seen in the 0.56 recall score). The model is naturally "biased" toward the majority class.
+
+Q: What was the purpose of using pd.get_dummies during the preprocessing phase?
+A: KNN requires purely numerical input to calculate distances. Columns like workclass and occupation contain text strings (categorical data). pd.get_dummies performs One-Hot Encoding, converting these categories into binary (0 or 1) columns, allowing the mathematical distance formula to process categorical relationships.
