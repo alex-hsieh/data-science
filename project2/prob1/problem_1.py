@@ -1,11 +1,14 @@
 from ucimlrepo import fetch_ucirepo 
 from sklearn.preprocessing import StandardScaler
-  
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from matplotlib import pyplot as plt
+
 # fetch dataset 
 car_evaluation = fetch_ucirepo(id=19) 
   
 # data (as pandas dataframes) 
-X = car_evaluation.data.features 
+X = car_evaluation.data.features.copy()
 y = car_evaluation.data.targets 
   
 # metadata 
@@ -43,3 +46,24 @@ X['safety'] = X['safety'].map(safety_mapping)
 # scale the data
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
+
+# apply PCA
+pca = PCA(n_components=3)
+X_pca = pca.fit_transform(X_scaled)
+print("explained variance ratio:", pca.explained_variance_ratio_)
+
+# empty list to store inertia values for different k
+inertia = []
+
+# range of k values to try
+for k in range(2, 11):
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X_pca)
+    inertia.append(kmeans.inertia_)
+
+# plotting the elbow curve
+plt.plot(range(2, 11), inertia, marker='o')
+plt.xlabel('Number of clusters (k)')
+plt.ylabel('Inertia')
+plt.title('Elbow Method for Optimal k')
+plt.show()
