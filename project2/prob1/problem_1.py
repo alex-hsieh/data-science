@@ -1,8 +1,12 @@
+from tkinter import Label
+from typing import final
+
 from ucimlrepo import fetch_ucirepo 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
+import numpy as np
 
 # fetch dataset 
 car_evaluation = fetch_ucirepo(id=19) 
@@ -66,4 +70,26 @@ plt.plot(range(2, 11), inertia, marker='o')
 plt.xlabel('Number of clusters (k)')
 plt.ylabel('Inertia')
 plt.title('Elbow Method for Optimal k')
+plt.show()
+
+# 2d scatter plot of the PCA components colored by cluster labels
+final_kmeans = KMeans(n_clusters=6, random_state=42)
+final_kmeans.fit(X_pca)
+Labels = final_kmeans.labels_
+print("Cluster sizes: ", np.bincount(Labels))
+
+# slicing the data for the scatter plot
+pca_1 = X_pca[:, 0]
+pca_2 = X_pca[:, 1]
+
+# build the scatter plot
+plt.scatter(pca_1, pca_2, c=Labels, cmap='viridis', alpha=0.6)
+
+# plotting the centroids
+centroids = final_kmeans.cluster_centers_
+plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Centroids')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('K-means Clustering of Car Evaluation Dataset')
+plt.legend()
 plt.show()
