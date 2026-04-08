@@ -1,0 +1,38 @@
+alexander hsieh
+04/07/2026
+idc 4140 - 0001
+dr. sharanya jayaraman
+
+interpretation and reflection :thoughtful: 
+
+1. how much variance was captured by the first 3 principal components?
+    > Each individual principal component captures roughly 0.16666667 
+    or 16.67% of the variance. Adding all these numbers together we get
+    0.5, meaning that these components captured 50% of the total variance.
+
+2. did the PCA project appear to separate the data clearly?
+    > Based on the result of the scatter plot, the colored dots or data
+    points were stacked in a very rigid way, almost perfectly straight
+    in both vertical and horizontal columns. This means that the clusters
+    overlap heavily within the "gridlines". Therefore, the PCA projection
+    did not properly separate the data clearly into distinct, isolated 
+    groups.
+
+3. which value of k seemed best, and why?
+    > After applying the elbow method, we could see in the plot that 
+    k = 6 was a great option since the steep drop-off started to flatten
+    out at k = 6.
+
+4. were the clusters easy to interpret in terms of the original car attributes?
+    > No. PCA takes the car attributes and mathematically mashes them
+    into abstract principal components. The result, a bunch of colored 
+    clusters in a graph, which don't make any sense when attempting to
+    interpret them in terms of the original car attributes.
+
+5. what limitations should we keep in mind when using k-means on encoded categorical data?
+    > K-means relies on numeric distances... Having a categorical dataset
+    made the processing more complicated. The original dataset had to be
+    transformed into numerical values whose distances are not an accurate
+    representation of reality. This caused the data to be structured 
+    rigidly instead, making K-Means struggle to draw logical boundaries.
+    
