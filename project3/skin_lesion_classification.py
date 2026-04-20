@@ -67,7 +67,7 @@ X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
 
 # Create and fit the logistic regression model using .fit()
 # We set max_iter=3000 to give the optimization algorithm enough time to converge, as the high-dimensional image data makes finding a solution difficult.
-logistic_model = LogisticRegression(max_iter=3000)
+logistic_model = LogisticRegression(max_iter=3000, random_state=42)
 
 # We use .ravel() on the y_train labels to convert the 2D column vector into a 1D array, which prevents scikit-learn from throwing DataConversionWarnings.
 logistic_model.fit(X_train_reshaped, y_train.ravel())
@@ -95,7 +95,7 @@ plt.show()
 # We initialize a Multi-Layer Perceptron. 
 # Architecture: Two hidden layers with 128 and 64 neurons respectively.
 # Activation: It uses the default 'relu' activation function, which helps the network learn non-linear patterns.
-nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000)
+nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000, random_state=42)
 
 # Fit the neural network model using .fit()
 nn_model.fit(X_train_reshaped, y_train.ravel()) 
