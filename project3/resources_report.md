@@ -18,3 +18,6 @@ It has 7,007 training images, 1,003 validation images, and 2,005 test images, al
     For your report: When answering "Are classes balanced?", you can definitively say no.
 
     When answering "Why does class imbalance matter?", you can reference our earlier discussion: a model could just predict Class 5 for every single patient and achieve a seemingly high "accuracy," completely failing to identify the other 6 conditions. This is exactly why we will need to look at Precision, Recall, and the F1-score later.
+
+## the output after training the model
+Even though your overall accuracy looks okay at ~69%, this table proves that the model is heavily biased. Because the data is so imbalanced, the Logistic Regression model essentially learned, "When in doubt, just guess Class 5!" It performs reasonably well on the majority class but fails completely on the rare skin lesions. Furthermore, because a Logistic Regression model can only draw straight mathematical lines (linear boundaries) to separate categories, it struggles to capture the complex curves and patterns of a lesion in a 2D image.

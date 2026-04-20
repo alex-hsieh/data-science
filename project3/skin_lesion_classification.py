@@ -49,3 +49,38 @@ plt.show()
 plt.imshow(X_train[0])
 plt.title(f"Class Label: {y_train[0][0]}")
 plt.show()
+
+# --- PART 2: Logistic Regression ---
+# reshaping the data to be 2D (num_samples, num_features)
+X_train_reshaped = X_train.reshape(X_train.shape[0], -1)
+X_val_reshaped = X_val.reshape(X_val.shape[0], -1)
+X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
+
+from sklearn.linear_model import LogisticRegression
+
+# Create and fit the logistic regression model using .fit()
+logistic_model = LogisticRegression(max_iter=3000)
+logistic_model.fit(X_train_reshaped, y_train.ravel())
+
+# Make predictions on the validation set
+y_val_pred = logistic_model.predict(X_val_reshaped)
+y_test_pred = logistic_model.predict(X_test_reshaped)
+
+# Evaluate the model using accuracy score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+val_accuracy = accuracy_score(y_val, y_val_pred)
+test_accuracy = accuracy_score(y_test, y_test_pred)
+print(f"Validation Accuracy: {val_accuracy:.4f}")
+print(f"Test Accuracy: {test_accuracy:.4f}")
+print("Classification Report on Validation Set:")
+print (classification_report(y_val, y_val_pred))
+
+# --- PART 3: Building a Neural Network ---
+from sklearn.neural_network import MLPClassifier
+nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000)
+
+# Fit the neural network model using .fit()
+nn_model.fit(X_train_reshaped, y_train.ravel()) 
+y_val_pred_nn = nn_model.predict(X_val_reshaped)
+print (classification_report(y_val, y_val_pred_nn))
