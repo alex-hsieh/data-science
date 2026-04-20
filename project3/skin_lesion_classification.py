@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
+from sklearn.metrics import ConfusionMatrixDisplay
 
 # --- PART 1: Data Loading and Preprocessing ---
 
@@ -85,6 +86,11 @@ print("Classification Report on Validation Set:")
 # The classification report outputs Precision, Recall, and F1-score, which are critical for evaluating model performance on this highly imbalanced dataset.
 print (classification_report(y_val, y_val_pred))
 
+# Display the Confusion Matrix for Logistic Regression
+ConfusionMatrixDisplay.from_predictions(y_val, y_val_pred)
+plt.title("Logistic Regression Confusion Matrix")
+plt.show()
+
 # --- PART 3: Building a Neural Network ---
 # We initialize a Multi-Layer Perceptron. 
 # Architecture: Two hidden layers with 128 and 64 neurons respectively.
@@ -95,4 +101,9 @@ nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000)
 nn_model.fit(X_train_reshaped, y_train.ravel()) 
 y_val_pred_nn = nn_model.predict(X_val_reshaped)
 print("Neural Network Classification Report on Validation Set:")
-print (classification_report(y_val, y_val_pred_nn))
+print (classification_report(y_val, y_val_pred_nn, zero_division=0))  # zero_division=0 prevents warnings about undefined metrics when a class has no predicted samples
+
+# Display the Confusion Matrix for the Neural Network
+ConfusionMatrixDisplay.from_predictions(y_val, y_val_pred_nn)
+plt.title("Neural Network Confusion Matrix")
+plt.show()
