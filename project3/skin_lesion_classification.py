@@ -1,19 +1,20 @@
 """
 Project 3: Skin Lesion Classification
 Author: Alexander Hsieh
-Description: This script loads the DermaMNIST dataset, explores class distributions, 
-and trains both a baseline Logistic Regression model and a Neural Network (MLP) 
+Description: This script loads the DermaMNIST dataset, explores class distributions,
+and trains both a baseline Logistic Regression model and a Neural Network (MLP)
 to classify 7 types of skin lesions.
 """
 
 from medmnist import DermaMNIST
 import numpy as np
+import pandas as pd
+import time
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, f1_score, precision_score, recall_score
+from sklearn.utils.class_weight import compute_sample_weight
 
 # --- PART 1: Data Loading and Preprocessing ---
 
@@ -43,6 +44,12 @@ X_train = X_train / 255.0
 X_val = X_val / 255.0
 X_test = X_test / 255.0
 
+# Print dataset sizes and dimensions
+print(f"Train: {X_train.shape}, Labels: {y_train.shape}")
+print(f"Val:   {X_val.shape}, Labels: {y_val.shape}")
+print(f"Test:  {X_test.shape}, Labels: {y_test.shape}")
+
+
 # Let's plot it as a bar chart so you can easily take a screenshot for your report!
 plt.bar(classes, counts)
 plt.title("Class Distribution in Training Set")
@@ -55,6 +62,16 @@ plt.imshow(X_train[0])
 plt.title(f"Class Label: {y_train[0][0]}")
 plt.show()
 
+# Display one sample image per class
+fig, axes = plt.subplots(1, 7, figsize=(14, 2))
+for cls in range(7):
+    idx = np.where(y_train.ravel() == cls)[0][0]
+    axes[cls].imshow(X_train[idx])
+    axes[cls].set_title(f"Class {cls}")
+    axes[cls].axis('off')
+plt.suptitle("Sample Images per Class")
+plt.show()
+
 # --- PART 2: Logistic Regression ---
 
 # reshaping the data to be 2D (num_samples, num_features)
@@ -63,16 +80,29 @@ X_train_reshaped = X_train.reshape(X_train.shape[0], -1)
 X_val_reshaped = X_val.reshape(X_val.shape[0], -1)
 X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
 
+# Tune C hyperparameter by trying multiple values
+C_values = [0.01, 0.1, 1.0, 10.0]
+best_C = None
+best_val_acc = 0
 
+for C in C_values:
+    model = LogisticRegression(C=C, max_iter=3000, random_state=42)
+    model.fit(X_train_reshaped, y_train.ravel())
+    acc = accuracy_score(y_val, model.predict(X_val_reshaped))
+    print(f"C={C}: Val Accuracy = {acc:.4f}")
+    if acc > best_val_acc:
+        best_val_acc = acc
+        best_C = C
 
-# Create and fit the logistic regression model using .fit()
-# We set max_iter=3000 to give the optimization algorithm enough time to converge, as the high-dimensional image data makes finding a solution difficult.
-logistic_model = LogisticRegression(max_iter=3000, random_state=42)
-
-# We use .ravel() on the y_train labels to convert the 2D column vector into a 1D array, which prevents scikit-learn from throwing DataConversionWarnings.
+# Train final model with best C, and track training time
+print(f"\nBest C: {best_C}")
+start = time.time()
+logistic_model = LogisticRegression(C=best_C, max_iter=3000, random_state=42, class_weight='balanced')
 logistic_model.fit(X_train_reshaped, y_train.ravel())
+lr_train_time = time.time() - start
+print(f"Logistic Regression Training Time: {lr_train_time:.2f}s")
 
-# Make predictions on the validation set
+# Make predictions on the validation and test sets
 y_val_pred = logistic_model.predict(X_val_reshaped)
 y_test_pred = logistic_model.predict(X_test_reshaped)
 
@@ -81,10 +111,11 @@ val_accuracy = accuracy_score(y_val, y_val_pred)
 test_accuracy = accuracy_score(y_test, y_test_pred)
 print(f"Validation Accuracy: {val_accuracy:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
-print("Classification Report on Validation Set:")
 
-# The classification report outputs Precision, Recall, and F1-score, which are critical for evaluating model performance on this highly imbalanced dataset.
-print (classification_report(y_val, y_val_pred))
+print("Classification Report on Validation Set:")
+print(classification_report(y_val, y_val_pred))
+print("Classification Report on Test Set:")
+print(classification_report(y_test, y_test_pred))
 
 # Display the Confusion Matrix for Logistic Regression
 ConfusionMatrixDisplay.from_predictions(y_val, y_val_pred)
@@ -92,18 +123,62 @@ plt.title("Logistic Regression Confusion Matrix")
 plt.show()
 
 # --- PART 3: Building a Neural Network ---
-# We initialize a Multi-Layer Perceptron. 
+# We initialize a Multi-Layer Perceptron.
 # Architecture: Two hidden layers with 128 and 64 neurons respectively.
-# Activation: It uses the default 'relu' activation function, which helps the network learn non-linear patterns.
+# Activation: 'relu' activation function helps the network learn non-linear patterns.
+# Loss: log_loss (cross-entropy). Optimizer: adam.
 nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000, random_state=42)
 
-# Fit the neural network model using .fit()
-nn_model.fit(X_train_reshaped, y_train.ravel()) 
-y_val_pred_nn = nn_model.predict(X_val_reshaped)
-print("Neural Network Classification Report on Validation Set:")
-print (classification_report(y_val, y_val_pred_nn, zero_division=0))  # zero_division=0 prevents warnings about undefined metrics when a class has no predicted samples
+# Track training time
+start = time.time()
+sample_weights = compute_sample_weight(class_weight='balanced', y=y_train.ravel())
+nn_model.fit(X_train_reshaped, y_train.ravel(), sample_weight=sample_weights)
+nn_train_time = time.time() - start
+print(f"Neural Network Training Time: {nn_train_time:.2f}s")
 
-# Display the Confusion Matrix for the Neural Network
+# Predictions on validation and test sets
+y_val_pred_nn = nn_model.predict(X_val_reshaped)
+y_test_pred_nn = nn_model.predict(X_test_reshaped)
+
+print("Neural Network Classification Report on Validation Set:")
+print(classification_report(y_val, y_val_pred_nn, zero_division=0))
+
+print("Neural Network Classification Report on Test Set:")
+print(classification_report(y_test, y_test_pred_nn, zero_division=0))
+
+# Confusion matrices
 ConfusionMatrixDisplay.from_predictions(y_val, y_val_pred_nn)
-plt.title("Neural Network Confusion Matrix")
+plt.title("Neural Network Confusion Matrix (Validation)")
 plt.show()
+
+# Plot training loss curve
+plt.plot(nn_model.loss_curve_)
+plt.title("Neural Network Training Loss Curve")
+plt.xlabel("Iteration")
+plt.ylabel("Loss")
+plt.show()
+
+# --- PART 4: Model Comparison ---
+
+
+lr_acc = accuracy_score(y_test, y_test_pred)
+nn_acc = accuracy_score(y_test, y_test_pred_nn)
+
+lr_precision = precision_score(y_test, y_test_pred, average='weighted', zero_division=0)
+nn_precision = precision_score(y_test, y_test_pred_nn, average='weighted', zero_division=0)
+
+lr_recall = recall_score(y_test, y_test_pred, average='weighted', zero_division=0)
+nn_recall = recall_score(y_test, y_test_pred_nn, average='weighted', zero_division=0)
+
+lr_f1 = f1_score(y_test, y_test_pred, average='weighted', zero_division=0)
+nn_f1 = f1_score(y_test, y_test_pred_nn, average='weighted', zero_division=0)
+
+comparison = {
+    "Metric": ["Accuracy", "Precision", "Recall", "F1-Score", "Training Time (s)"],
+    "Logistic Regression": [lr_acc, lr_precision, lr_recall, lr_f1, round(lr_train_time, 2)],
+    "Neural Network":      [nn_acc, nn_precision, nn_recall, nn_f1, round(nn_train_time, 2)]
+}
+
+
+df = pd.DataFrame(comparison)
+print(df.to_string(index=False))
