@@ -13,7 +13,8 @@ import time
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import ConfusionMatrixDisplay, f1_score, precision_score, recall_score
 from sklearn.utils.class_weight import compute_sample_weight
 
 # --- PART 1: Data Loading and Preprocessing ---
@@ -39,7 +40,9 @@ y_test = test_dataset.labels
 classes, counts = np.unique(y_train, return_counts=True)
 
 # Normalize the pixel values to be between 0.0 and 1.0
-# Scaling pixel values from (0-255) to (0.0-1.0) is crucial for machine learning models. It helps the math (gradient descent) converge much faster and prevents larger pixel values from dominating the learning process.
+# Scaling pixel values from (0-255) to (0.0-1.0) is crucial for machine learning models. 
+# It helps the math (gradient descent) converge much faster and prevents larger pixel 
+# values from dominating the learning process.
 X_train = X_train / 255.0
 X_val = X_val / 255.0
 X_test = X_test / 255.0
@@ -50,11 +53,16 @@ print(f"Val:   {X_val.shape}, Labels: {y_val.shape}")
 print(f"Test:  {X_test.shape}, Labels: {y_test.shape}")
 
 
-# Let's plot it as a bar chart so you can easily take a screenshot for your report!
-plt.bar(classes, counts)
+# Plot it as a bar chart 
+class_names = ['Actinic keratoses', 'Basal cell carcinoma', 'Benign keratosis',
+                'Dermatofibroma', 'Melanoma', 'Nevus', 'Vascular lesions']
+
+plt.bar(classes, counts, tick_label=class_names)
 plt.title("Class Distribution in Training Set")
 plt.xlabel("Class Label")
 plt.ylabel("Number of Images")
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
 plt.show()
 
 # Display the very first image in the training set
@@ -63,19 +71,23 @@ plt.title(f"Class Label: {y_train[0][0]}")
 plt.show()
 
 # Display one sample image per class
-fig, axes = plt.subplots(1, 7, figsize=(14, 2))
+fig, axes = plt.subplots(1, 7, figsize=(14, 3))
 for cls in range(7):
     idx = np.where(y_train.ravel() == cls)[0][0]
     axes[cls].imshow(X_train[idx])
     axes[cls].set_title(f"Class {cls}")
     axes[cls].axis('off')
-plt.suptitle("Sample Images per Class")
+plt.suptitle("Sample Images per Class", y=0.98)
+plt.tight_layout()
+plt.savefig('sample_images.png', bbox_inches='tight', pad_inches=0.3)
 plt.show()
 
 # --- PART 2: Logistic Regression ---
 
 # reshaping the data to be 2D (num_samples, num_features)
-# Scikit-Learn models cannot accept 4D image arrays. We use .reshape() to flatten the 28x28x3 images into a single 1D vector of 2,352 features for each patient. The '-1' tells NumPy to calculate the remaining dimension automatically.
+# Scikit-Learn models cannot accept 4D image arrays. We use .reshape() to flatten 
+# the 28x28x3 images into a single 1D vector of 2,352 features for each patient. 
+# The '-1' tells NumPy to calculate the remaining dimension automatically.
 X_train_reshaped = X_train.reshape(X_train.shape[0], -1)
 X_val_reshaped = X_val.reshape(X_val.shape[0], -1)
 X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
@@ -126,8 +138,11 @@ plt.show()
 # We initialize a Multi-Layer Perceptron.
 # Architecture: Two hidden layers with 128 and 64 neurons respectively.
 # Activation: 'relu' activation function helps the network learn non-linear patterns.
-# Loss: log_loss (cross-entropy). Optimizer: adam.
-nn_model = MLPClassifier(hidden_layer_sizes=(128, 64), max_iter=3000, random_state=42)
+# Loss: log_loss (cross-entropy). 
+nn_model = MLPClassifier(hidden_layer_sizes=(256, 128, 64), 
+                         max_iter=5000, random_state=42,
+                         activation='relu'
+                        )
 
 # Track training time
 start = time.time()
@@ -159,8 +174,6 @@ plt.ylabel("Loss")
 plt.show()
 
 # --- PART 4: Model Comparison ---
-
-
 lr_acc = accuracy_score(y_test, y_test_pred)
 nn_acc = accuracy_score(y_test, y_test_pred_nn)
 
